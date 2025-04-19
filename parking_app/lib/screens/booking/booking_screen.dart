@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:parking_app/models/payment_method.dart';
 import 'package:parking_app/screens/home/home_screen.dart';
+import 'package:parking_app/screens/vehicle_management/add_vehicle_screen.dart';
 
 class BookingScreen extends StatefulWidget {
   final ParkingLocation parkingLocation;
@@ -903,34 +905,5 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 }
 
-// Vehicle Model
-class Vehicle {
-  final String name;
-  final String licensePlate;
-  final IconData icon;
-
-  Vehicle({required this.name, required this.licensePlate, required this.icon});
-}
-
 // Payment Method Model
-class PaymentMethod {
-  final String name;
-  final IconData icon;
-  final bool isDefault;
 
-  PaymentMethod({
-    required this.name,
-    required this.icon,
-    required this.isDefault,
-  });
-}
-
-// Helper function to navigate to booking screen
-void navigateToBooking(BuildContext context, ParkingLocation parkingLocation) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => BookingScreen(parkingLocation: parkingLocation),
-    ),
-  );
-}
