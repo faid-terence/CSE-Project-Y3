@@ -46,6 +46,10 @@ http_parser
 3.4
 file:///Users/faidterencejabo/.pub-cache/hosted/pub.dev/http_parser-4.1.2/
 file:///Users/faidterencejabo/.pub-cache/hosted/pub.dev/http_parser-4.1.2/lib/
+intl
+3.3
+file:///Users/faidterencejabo/.pub-cache/hosted/pub.dev/intl-0.20.2/
+file:///Users/faidterencejabo/.pub-cache/hosted/pub.dev/intl-0.20.2/lib/
 leak_tracker
 3.2
 file:///Users/faidterencejabo/.pub-cache/hosted/pub.dev/leak_tracker-10.0.8/
@@ -144,8 +148,8 @@ file:///Users/faidterencejabo/.pub-cache/hosted/pub.dev/xml-6.5.0/
 file:///Users/faidterencejabo/.pub-cache/hosted/pub.dev/xml-6.5.0/lib/
 parking_app
 3.7
-file:///Users/faidterencejabo/Documents/faid-dev/Personal/parking_app/
-file:///Users/faidterencejabo/Documents/faid-dev/Personal/parking_app/lib/
+file:///Users/faidterencejabo/Documents/faid-dev/Personal/CSE:Y3/parking_app/
+file:///Users/faidterencejabo/Documents/faid-dev/Personal/CSE:Y3/parking_app/lib/
 sky_engine
 3.7
 file:///Users/faidterencejabo/development/flutter/bin/cache/pkg/sky_engine/

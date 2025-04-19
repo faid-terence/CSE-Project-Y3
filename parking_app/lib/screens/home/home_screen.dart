@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parking_app/screens/booking/booking_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -59,6 +60,18 @@ class _HomeScreenState extends State<HomeScreen> {
       imageUrl: 'assets/images/parking_recent_2.png',
     ),
   ];
+
+  void navigateToBooking(
+    BuildContext context,
+    ParkingLocation parkingLocation,
+  ) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookingScreen(parkingLocation: parkingLocation),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -382,12 +395,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: const Color(0xFF4CB8B3),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
-                          'Book',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        child: GestureDetector(
+                          onTap: () {
+                            navigateToBooking(context, parking);
+                          },
+                          child: const Text(
+                            'Book',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
