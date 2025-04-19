@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:parking_app/screens/auth/sign_up_screen.dart';
+import 'package:parking_app/screens/home/home_screen.dart';
 
 // Add this to your existing code to include login/signup screens
 
@@ -22,6 +23,16 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  void _handleLogin() {
+    if (_formKey.currentState!.validate()) {
+      // Navigate to home screen after successful login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    }
   }
 
   @override
@@ -228,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
                             // Handle login
-                            debugPrint('Login successful');
+                            _handleLogin();
                           }
                         },
                         style: ElevatedButton.styleFrom(
