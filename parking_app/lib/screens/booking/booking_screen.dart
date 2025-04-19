@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:parking_app/models/parking_location.dart';
 import 'package:parking_app/models/payment_method.dart';
-import 'package:parking_app/screens/home/home_screen.dart';
 import 'package:parking_app/screens/vehicle_management/add_vehicle_screen.dart';
 
 class BookingScreen extends StatefulWidget {

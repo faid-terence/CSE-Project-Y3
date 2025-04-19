@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:parking_app/models/parking_location.dart';
+import 'package:parking_app/models/recent_parking.dart';
 import 'package:parking_app/screens/booking/booking_screen.dart';
+import 'package:parking_app/screens/booking/my_bookings_screen.dart';
+import 'package:parking_app/screens/home/profile_screen.dart';
+import 'package:parking_app/screens/home/search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,6 +15,38 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+
+  // bottom nav bar screens - don't include HomeScreen itself
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize screens after HomeScreen is created
+    _screens = [
+      _buildHomeContent(), // Custom method to build home content
+      const SearchScreen(),
+      const BookingsScreen(),
+      const ProfileScreen(),
+    ];
+  }
+
+  // This builds just the content of the home tab
+  Widget _buildHomeContent() {
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            _buildSearchBar(),
+            _buildNearbyParkings(),
+            _buildRecentParkings(),
+          ],
+        ),
+      ),
+    );
+  }
 
   // List of nearby parking locations
   final List<ParkingLocation> _nearbyParkings = [
@@ -77,19 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              _buildSearchBar(),
-              _buildNearbyParkings(),
-              _buildRecentParkings(),
-            ],
-          ),
-        ),
-      ),
+      body: _screens[_currentIndex],
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
@@ -588,6 +613,7 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.bookmark_border),
             label: 'Bookings',
+            tooltip: "View your bookings",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
@@ -598,50 +624,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-// Data models
-class ParkingLocation {
-  final String name;
-  final String address;
-  final String distance;
-  final String price;
-  final int available;
-  final int total;
-  final double rating;
-  final String imageUrl;
-
-  ParkingLocation({
-    required this.name,
-    required this.address,
-    required this.distance,
-    required this.price,
-    required this.available,
-    required this.total,
-    required this.rating,
-    required this.imageUrl,
-  });
-}
-
-class RecentParking {
-  final String name;
-  final String date;
-  final String price;
-  final String imageUrl;
-
-  RecentParking({
-    required this.name,
-    required this.date,
-    required this.price,
-    required this.imageUrl,
-  });
-}
-
-// Add this function to your main navigation to connect the screens
-void navigateToHome(BuildContext context) {
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => const HomeScreen()),
-  );
-}
-
-// To connect this with your login screen, update the login button's onPressed method:
