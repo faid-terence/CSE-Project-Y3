@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:parking_app/screens/auth/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,6 +30,21 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+
+  void navigateToLogin(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
+
+  void _completeOnboarding() {
+    // Navigate to login screen after onboarding
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
 
   final List<OnboardingData> _pages = [
     OnboardingData(
@@ -118,12 +134,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       curve: Curves.ease,
                     );
                   } else {
-                    // Navigate to home screen after onboarding
-                    debugPrint('Onboarding completed');
-                    // Navigator.pushReplacement(
-                    //   context,
-                    //   MaterialPageRoute(builder: (context) => const HomeScreen()),
-                    // );
+                    _completeOnboarding();
                   }
                 },
                 style: ElevatedButton.styleFrom(
