@@ -11,7 +11,7 @@ class StoreVehicleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true; // Allow authenticated users to create vehicles
     }
 
     /**
@@ -22,7 +22,9 @@ class StoreVehicleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:50',
+            'license_plate' => 'required|string|max:20|unique:vehicles',
+            'icon' => 'nullable|string|max:255',
         ];
     }
 }
