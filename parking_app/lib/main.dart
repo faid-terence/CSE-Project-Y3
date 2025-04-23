@@ -50,7 +50,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     OnboardingData(
       title: 'Find Parking Places\nAround You Easily',
       subtitle: 'Book you parking without any hustle',
-      image: 'assets/images/splash_3.svg',
+      image: 'assets/images/splash_1.svg',
       buttonText: 'Next',
       highlightText: 'Places',
       regularText: 'Find Parking ',
@@ -192,7 +192,12 @@ class OnboardingPage extends StatelessWidget {
           flex: 5,
           child: Container(
             padding: const EdgeInsets.all(20),
-            child: SvgPicture.asset(data.image, fit: BoxFit.cover),
+            child: SvgPicture.asset(
+              data.image,
+              fit: BoxFit.contain,
+              width: MediaQuery.of(context).size.width * 0.7,
+              height: MediaQuery.of(context).size.height * 0.3,
+            ),
           ),
         ),
         Expanded(
