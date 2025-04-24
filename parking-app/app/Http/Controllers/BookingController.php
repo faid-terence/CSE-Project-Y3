@@ -113,7 +113,7 @@ class BookingController extends Controller
             ->firstOrFail();
         
         // Check if booking is active
-        if ($booking->status !== 'confirmed' || Carbon::parse($booking->end_time)->isPast()) {
+        if ($booking->status !== 'booked' || Carbon::parse($booking->end_time)->isPast()) {
             return response()->json([
                 'message' => 'Cannot extend a completed or cancelled booking'
             ], 422);
