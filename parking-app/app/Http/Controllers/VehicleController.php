@@ -44,4 +44,15 @@ class VehicleController extends Controller
         $vehicle->delete();
         return response()->json(null, 204);
     }
+
+    public function getUserVehicles(Request $request)
+{
+    $user = $request->user();
+    $vehicles = $user->vehicles()->get();
+    
+    return response()->json([
+        'status' => 'success',
+        'data' => $vehicles
+    ]);
+}
 }

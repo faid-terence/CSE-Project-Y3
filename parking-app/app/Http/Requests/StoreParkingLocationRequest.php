@@ -11,7 +11,7 @@ class StoreParkingLocationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,12 @@ class StoreParkingLocationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
+            'price_per_hour' => 'required|numeric|min:0',
+            'total_slots' => 'required|integer|min:1',
         ];
     }
 }
