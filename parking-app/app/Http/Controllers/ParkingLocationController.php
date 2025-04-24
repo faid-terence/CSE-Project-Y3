@@ -32,7 +32,11 @@ class ParkingLocationController extends Controller
                   ->having('distance', '<', $radius);
         }
 
-        return ParkingLocationResource::collection($query->paginate());
+        // Get all parking locations without pagination
+        $parkings = $query->get();
+        
+        // Use the collection method to transform without pagination metadata
+        return ['data' => ParkingLocationResource::collection($parkings)];
     }
 
     public function show($id)
