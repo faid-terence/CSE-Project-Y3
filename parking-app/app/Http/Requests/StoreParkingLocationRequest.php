@@ -24,10 +24,28 @@ class StoreParkingLocationRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'address' => 'required|string|max:255',
-            'lat' => 'required|numeric|between:-90,90',
-            'lng' => 'required|numeric|between:-180,180',
+            'city' => 'nullable|string|max:100',
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric',
             'price_per_hour' => 'required|numeric|min:0',
-            'total_slots' => 'required|integer|min:1',
+            'total_slots' => 'required|integer|min:0',
+            'available_spots' => 'nullable|integer|min:0',
+            'features' => 'nullable|array',
         ];
+    }
+
+     /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation()
+    {
+        // If available_spots is not provided, set it equal to total_slots
+        if (!$this->has('available_spots') && $this->has('total_slots')) {
+            $this->merge([
+                'available_spots' => $this->total_slots,
+            ]);
+        }
     }
 }

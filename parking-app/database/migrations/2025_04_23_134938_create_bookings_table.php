@@ -18,6 +18,8 @@ return new class extends Migration
             $table->foreignId('vehicle_id')->constrained()->onDelete('cascade');
             $table->timestamp('start_time');
             $table->timestamp('end_time');
+            $table->integer('duration_hours')->default(0);
+            $table->decimal('total_price', 10, 2)->default(0);
             $table->enum('status',['booked','in_progress','completed','cancelled'])->default('booked');
             $table->timestamps();
         });

@@ -19,6 +19,7 @@ class ParkingLocationController extends Controller
             $lat = $request->float('lat');
             $lng = $request->float('lng');
             $radius = $request->input('radius', 10);
+            
 
             $haversine = "(
                 6371 * acos(
@@ -32,10 +33,9 @@ class ParkingLocationController extends Controller
                   ->having('distance', '<', $radius);
         }
 
-        // Get all parking locations without pagination
+     
         $parkings = $query->get();
-        
-        // Use the collection method to transform without pagination metadata
+
         return ['data' => ParkingLocationResource::collection($parkings)];
     }
 
@@ -47,7 +47,15 @@ class ParkingLocationController extends Controller
 
     public function store(StoreParkingLocationRequest $request)
     {
-        $parking = ParkingLocation::create($request->validated());
+        $validated = $request->validated();
+        
+        // If available_spots wasn't provided, default to total_slots
+        if (!isset($validated['available_spots'])) {
+            $validated['available_spots'] = $validated['total_slots'];
+        }
+        
+        $parking = ParkingLocation::create($validated);
+        
         return new ParkingLocationResource($parking);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\ParkingLocation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -145,5 +146,39 @@ class AuthController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Update the specified parking location.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(Request $request, $id)
+    {
+        // Validate the request
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'address' => 'sometimes|required|string|max:255',
+            'city' => 'sometimes|required|string|max:100',
+            'lat' => 'sometimes|required|numeric',
+            'lng' => 'sometimes|required|numeric',
+            'price_per_hour' => 'sometimes|required|numeric|min:0',
+            'total_slots' => 'sometimes|required|integer|min:0',
+            'available_spots' => 'sometimes|required|integer|min:0',
+            'features' => 'sometimes|array',
+        ]);
+
+        // Find the parking location
+        $parkingLocation = ParkingLocation::findOrFail($id);
+        
+        // Update the parking location
+        $parkingLocation->update($validated);
+        
+        return response()->json([
+            'message' => 'Parking location updated successfully',
+            'data' => $parkingLocation
+        ]);
     }
 }
