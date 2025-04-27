@@ -149,7 +149,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Update the specified parking location.
+     * Update  parking location.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
@@ -170,10 +170,8 @@ class AuthController extends Controller
             'features' => 'sometimes|array',
         ]);
 
-        // Find the parking location
+     
         $parkingLocation = ParkingLocation::findOrFail($id);
-        
-        // Update the parking location
         $parkingLocation->update($validated);
         
         return response()->json([

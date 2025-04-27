@@ -41,7 +41,6 @@ class StoreParkingLocationRequest extends FormRequest
      */
     protected function prepareForValidation()
     {
-        // If available_spots is not provided, set it equal to total_slots
         if (!$this->has('available_spots') && $this->has('total_slots')) {
             $this->merge([
                 'available_spots' => $this->total_slots,

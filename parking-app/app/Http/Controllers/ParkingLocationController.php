@@ -49,7 +49,6 @@ class ParkingLocationController extends Controller
     {
         $validated = $request->validated();
         
-        // If available_spots wasn't provided, default to total_slots
         if (!isset($validated['available_spots'])) {
             $validated['available_spots'] = $validated['total_slots'];
         }

@@ -11,13 +11,13 @@ class StoreVehicleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Allow authenticated users to create vehicles
+        return true; 
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string,
      */
     public function rules(): array
     {

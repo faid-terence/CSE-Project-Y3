@@ -11,7 +11,6 @@ class StoreBookingRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Change to true to allow authenticated users to create bookings
         return true;
     }
 
