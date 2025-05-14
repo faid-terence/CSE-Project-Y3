@@ -27,18 +27,13 @@ class AuthService {
           'password_confirmation': passwordConfirmation,
         },
       );
-
-      // Parse the response data
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = response.data;
-
-        // Extract data from the response
         final String? message = responseData['message'];
         final Map<String, dynamic>? userData = responseData['user'];
         final String? token = responseData['token'];
         final String? tokenType = responseData['token_type'];
 
-        // Save token if available
         if (token != null) {
           final fullToken = '$tokenType $token';
           await _saveToken(fullToken);
@@ -62,7 +57,6 @@ class AuthService {
         debugPrint('Error response: ${e.response!.data}');
 
         if (e.response!.data is Map) {
-          // Handle Laravel validation errors format
           if (e.response!.data['errors'] != null &&
               e.response!.data['errors'] is Map) {
             final errorData = e.response!.data['errors'] as Map;
@@ -76,8 +70,6 @@ class AuthService {
               }
             });
           }
-
-          // Get main error message
           if (e.response!.data['message'] != null) {
             message = e.response!.data['message'].toString();
           }
@@ -105,13 +97,10 @@ class AuthService {
       if (response.statusCode == 200) {
         final responseData = response.data;
 
-        // Extract data from the response
         final String? message = responseData['message'];
         final Map<String, dynamic>? userData = responseData['user'];
         final String? token = responseData['token'];
         final String? tokenType = responseData['token_type'];
-
-        // Save authentication token with token type
         if (token != null && tokenType != null) {
           final fullToken = '$tokenType $token';
           await _saveToken(fullToken);
@@ -153,17 +142,13 @@ class AuthService {
         try {
           await _dioClient.dio.post('/api/logout');
         } catch (e) {
-          // Even if the API call fails, we proceed with removing the token
           debugPrint('Logout API error: $e');
         }
       }
-
-      // Always clear the token on logout attempt
       await _clearToken();
       return ApiResponse.success(true, message: 'Logout successful');
     } catch (e) {
       debugPrint('Logout error: $e');
-      // Even if there's an error, we still want to clear the token
       await _clearToken();
       return ApiResponse.success(true, message: 'Logout completed');
     }

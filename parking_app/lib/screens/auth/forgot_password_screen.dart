@@ -31,9 +31,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
-      // Placeholder for forgot password API call
-      // Assuming AuthService has a method like:
-      // Future<ApiResponse<bool>> forgotPassword(String email)
       final response = await authService.forgotPassword(
         email: _emailController.text.trim(),
       );
@@ -41,7 +38,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (!mounted) return;
 
       setState(() {
-        _message = response.message ??
+        _message =
+            response.message ??
             (response.success
                 ? 'Password reset link sent to your email.'
                 : 'Failed to send reset link.');
@@ -73,10 +71,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             const SizedBox(height: 20),
             const Text(
               'Reset Your Password',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Text(
@@ -89,24 +84,38 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: _message!.contains('sent') ? Colors.green.shade50 : Colors.red.shade50,
+                  color:
+                      _message!.contains('sent')
+                          ? Colors.green.shade50
+                          : Colors.red.shade50,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: _message!.contains('sent') ? Colors.green.shade200 : Colors.red.shade200,
+                    color:
+                        _message!.contains('sent')
+                            ? Colors.green.shade200
+                            : Colors.red.shade200,
                   ),
                 ),
                 child: Row(
                   children: [
                     Icon(
-                      _message!.contains('sent') ? Icons.check_circle : Icons.error_outline,
-                      color: _message!.contains('sent') ? Colors.green[700] : Colors.red[700],
+                      _message!.contains('sent')
+                          ? Icons.check_circle
+                          : Icons.error_outline,
+                      color:
+                          _message!.contains('sent')
+                              ? Colors.green[700]
+                              : Colors.red[700],
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         _message!,
                         style: TextStyle(
-                          color: _message!.contains('sent') ? Colors.green[700] : Colors.red[700],
+                          color:
+                              _message!.contains('sent')
+                                  ? Colors.green[700]
+                                  : Colors.red[700],
                         ),
                       ),
                     ),
@@ -147,7 +156,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
                       }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                      if (!RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      ).hasMatch(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
@@ -164,23 +175,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
+                    child:
+                        _isLoading
+                            ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                            : const Text(
+                              'Send Reset Link',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
                             ),
-                          )
-                        : const Text(
-                            'Send Reset Link',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                            ),
-                          ),
                   ),
                 ],
               ),
