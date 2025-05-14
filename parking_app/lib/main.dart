@@ -1,21 +1,111 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:parking_app/provider/user_provider.dart';
+import 'package:parking_app/screens/auth/forgot_password_screen.dart';
 import 'package:parking_app/screens/auth/login_screen.dart';
+import 'package:parking_app/screens/auth/sign_up_screen.dart';
+import 'package:parking_app/screens/home/home_screen.dart';
+import 'package:parking_app/services/auth/auth_service.dart';
+import 'package:parking_app/services/dio_client/dio_client.dart';
+import 'package:parking_app/services/storage/storage_service.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ParkingApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ParkingApp extends StatelessWidget {
+  const ParkingApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Parking App Onboarding',
-      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Roboto'),
-      home: const OnboardingScreen(),
+    return MultiProvider(
+      providers: [
+        Provider<DioClient>(create: (_) => DioClient('http://localhost:8000')),
+        Provider<StorageService>(create: (_) => StorageService()),
+        Provider<AuthService>(
+          create: (context) => AuthService(context.read<DioClient>()),
+        ),
+        ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Parking App',
+        theme: ThemeData(
+          primaryColor: const Color(0xFF4CB8B3),
+          scaffoldBackgroundColor: Colors.white,
+          fontFamily: 'Roboto',
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CB8B3),
+            ),
+          ),
+        ),
+        initialRoute: '/splash',
+        routes: {
+          '/splash': (context) => const SplashScreen(),
+          '/onboarding': (context) => const OnboardingScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/signup': (context) => const SignUpScreen(),
+          '/home': (context) => const HomeScreen(),
+          '/forgot-password': (context) => const ForgotPasswordScreen(),
+        },
+      ),
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final storageService = Provider.of<StorageService>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    if (await authService.isAuthenticated()) {
+      final userData = await storageService.getUserData();
+      if (userData != null) {
+        userProvider.setUser(userData);
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      } else {
+        final response = await authService.getCurrentUser();
+        if (response.success && response.data != null) {
+          userProvider.setUser(response.data!);
+          await storageService.saveUserData(response.data!);
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/home');
+          }
+        } else {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/onboarding');
+          }
+        }
+      }
+    } else {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/onboarding');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator(color: Color(0xFF4CB8B3))),
     );
   }
 }
@@ -31,25 +121,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  void navigateToLogin(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  }
-
   void _completeOnboarding() {
-    // Navigate to login screen after onboarding
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   final List<OnboardingData> _pages = [
     OnboardingData(
       title: 'Find Parking Places\nAround You Easily',
-      subtitle: 'Book you parking without any hustle',
+      subtitle: 'Book your parking without any hustle',
       image: 'assets/images/splash_1.svg',
       buttonText: 'Next',
       highlightText: 'Places',
@@ -57,7 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     OnboardingData(
       title: 'Book and Pay Parking\nQuickly & Safely',
-      subtitle: 'search for nearest parking space\navailable around you',
+      subtitle: 'Search for nearest parking space\navailable around you',
       image: 'assets/images/splash_3.svg',
       buttonText: 'Next',
       highlightText: 'Parking',
@@ -65,7 +144,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     OnboardingData(
       title: 'Extend Parking Time\nAs You Need',
-      subtitle: 'Book you parking without any hustle',
+      subtitle: 'Book your parking without any hustle',
       image: 'assets/images/splash_3.svg',
       buttonText: 'Done',
       highlightText: 'Parking',
@@ -138,7 +217,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4CB8B3),
                   minimumSize: const Size(double.infinity, 55),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
@@ -154,6 +232,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
             ),
+            TextButton(
+              onPressed: _completeOnboarding,
+              child: const Text(
+                'Skip',
+                style: TextStyle(
+                  color: Color(0xFF4CB8B3),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
           ],
         ),
       ),
@@ -207,7 +297,6 @@ class OnboardingPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Custom Title with different colors
                 RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(

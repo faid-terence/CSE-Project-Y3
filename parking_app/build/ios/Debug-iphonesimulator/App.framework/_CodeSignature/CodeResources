@@ -10,11 +10,11 @@
 		</data>
 		<key>flutter_assets/AssetManifest.bin</key>
 		<data>
-		uHp/qzsU0bdhQ5MARCVhxruEwtU=
+		riXJ4P9tra/hVEKFJ1ls16a2T5Q=
 		</data>
 		<key>flutter_assets/AssetManifest.json</key>
 		<data>
-		4PAMRB7oUno7NpVSVKgSXrGeSrU=
+		ZHfi//1SCLwAGB211RUdf4F0JLc=
 		</data>
 		<key>flutter_assets/FontManifest.json</key>
 		<data>
@@ -22,11 +22,15 @@
 		</data>
 		<key>flutter_assets/NOTICES.Z</key>
 		<data>
-		AT8urIezTahvstVNbhNzjO56ftQ=
+		fJlN+S0HQaA1jJ4Sq5hoq/3KntM=
 		</data>
 		<key>flutter_assets/NativeAssetsManifest.json</key>
 		<data>
 		re4p7E8rPLLsN+wzaPN/+AVpXTY=
+		</data>
+		<key>flutter_assets/assets/images/Parking-bro.svg</key>
+		<data>
+		e9qn3ftKfHHgmXgp0kyB0Jo4iMs=
 		</data>
 		<key>flutter_assets/assets/images/social_google.svg</key>
 		<data>
@@ -54,7 +58,7 @@
 		</data>
 		<key>flutter_assets/kernel_blob.bin</key>
 		<data>
-		zEk8CRWcHabYfYjXwYePFYc1Zl8=
+		bmLcT8S4rbSMoNgle3l7eCJv3lw=
 		</data>
 		<key>flutter_assets/packages/cupertino_icons/assets/CupertinoIcons.ttf</key>
 		<data>
@@ -75,14 +79,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			shcWIgpzpMmcOQOl1v8YEe6fzDU6FkDNsE4ljjYcDD0=
+			SbxoFVIvAjB8BNX0FUFCDWkBGH2eoZ4OZEg1VGN0Jis=
 			</data>
 		</dict>
 		<key>flutter_assets/AssetManifest.json</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			N84KNPHFkSe/98s2naD8dRDIOqVU2FoEWwnEDnos5FQ=
+			JlY2Bui7kK/JpR1YGEjHzvDU1t9O1LrLvinYwHFoF/g=
 			</data>
 		</dict>
 		<key>flutter_assets/FontManifest.json</key>
@@ -96,7 +100,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			6MwS4d4lJWvAY197rDzMCiNnGqhmug+pL96m757duUA=
+			Azg1eMXB8cwE9YZfUqTUoIaY7OrwTQJeXnZKpMmM0iw=
 			</data>
 		</dict>
 		<key>flutter_assets/NativeAssetsManifest.json</key>
@@ -104,6 +108,13 @@
 			<key>hash2</key>
 			<data>
 			lUijHkoEgTXB2U+Rkyi/tirix7s8q5ZVfHlB2ql3dss=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/images/Parking-bro.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			aUKyCN3/dqiyCTv6DD8/udFaWLeZRRlF/8VElIxVmxk=
 			</data>
 		</dict>
 		<key>flutter_assets/assets/images/social_google.svg</key>
@@ -152,7 +163,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			+BzLzOnEi+fygqGI8wWuYi3wOtZANSr1j4R0dY+DH4g=
+			HjZ7WuLaWKyIK8NjSfur8FBTIp/7BGPWic7pAbej9Q4=
 			</data>
 		</dict>
 		<key>flutter_assets/packages/cupertino_icons/assets/CupertinoIcons.ttf</key>

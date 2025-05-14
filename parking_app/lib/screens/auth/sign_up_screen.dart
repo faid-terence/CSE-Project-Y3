@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:parking_app/services/auth/auth_service.dart';
+import 'package:parking_app/services/dio_client/dio_client.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -16,6 +18,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
+  bool _isLoading = false;
+
+  // Initialize the DioClient and AuthService
+  late final DioClient _dioClient;
+  late final AuthService _authService;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with your API base URL
+    _dioClient = DioClient('http://127.0.0.1:8000');
+    _authService = AuthService(_dioClient);
+  }
 
   @override
   void dispose() {
@@ -24,6 +39,96 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  // Function to handle user registration
+  Future<void> _registerUser() async {
+    if (!_formKey.currentState!.validate() || !_agreeToTerms) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final result = await _authService.register(
+        name: _nameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+        passwordConfirmation: _confirmPasswordController.text,
+      );
+
+      // Registration successful
+      if (result.success) {
+        // Show success message
+        if (mounted) {
+          // Get user data from response if available
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result.message ?? 'Registration successful! Please log in.',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate to login screen or home screen depending on your flow
+          Navigator.pop(context);
+
+          // You could also navigate directly to home screen since user is now logged in
+          // Or you could pass the user data to another screen
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => HomeScreen(userData: userData)),
+          // );
+        }
+      } else {
+        // Handle validation errors or other API errors
+        if (mounted) {
+          if (result.errors != null && result.errors!.isNotEmpty) {
+            // Show first error from each field
+            String errorMessage = '';
+            result.errors!.forEach((field, errors) {
+              if (errors.isNotEmpty) {
+                errorMessage += '${field}: ${errors.first}\n';
+              }
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(errorMessage.trim()),
+                backgroundColor: Colors.red,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result.message ?? 'Registration failed'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Registration failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -339,14 +444,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       // Sign Up button
                       ElevatedButton(
                         onPressed:
-                            _agreeToTerms
-                                ? () {
-                                  if (_formKey.currentState!.validate()) {
-                                    // Handle sign up
-                                    debugPrint('Sign up successful');
-                                  }
-                                }
-                                : null,
+                            _isLoading || !_agreeToTerms ? null : _registerUser,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4CB8B3),
                           disabledBackgroundColor: Colors.grey[300],
@@ -356,61 +454,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child:
+                            _isLoading
+                                ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : const Text(
+                                  'Sign Up',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
                       ),
-                      // const SizedBox(height: 20),
-                      // // OR divider
-                      // Row(
-                      //   children: [
-                      //     Expanded(
-                      //       child: Divider(
-                      //         color: Colors.grey[300],
-                      //         thickness: 1,
-                      //       ),
-                      //     ),
-                      //     Padding(
-                      //       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      //       child: Text(
-                      //         'OR',
-                      //         style: TextStyle(
-                      //           fontSize: 14,
-                      //           fontWeight: FontWeight.w500,
-                      //           color: Colors.grey[600],
-                      //         ),
-                      //       ),
-                      //     ),
-                      //     Expanded(
-                      //       child: Divider(
-                      //         color: Colors.grey[300],
-                      //         thickness: 1,
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
                       const SizedBox(height: 20),
-                      // // Social sign up buttons
-                      // Row(
-                      //   mainAxisAlignment: MainAxisAlignment.center,
-                      //   children: [
-                      //     _socialSignUpButton(
-                      //       'assets/images/social_google.svg',
-                      //     ),
-                      //     // const SizedBox(width: 16),
-                      //     // _socialSignUpButton(
-                      //     //   'assets/images/facebook_icon.png',
-                      //     // ),
-                      //     // const SizedBox(width: 16),
-                      //     // _socialSignUpButton('assets/images/apple_icon.png'),
-                      //   ],
-                      // ),
-                      const SizedBox(height: 30),
                       // Login link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
