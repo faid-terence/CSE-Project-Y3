@@ -63,10 +63,10 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 children: [
                   _buildOptionTile(Icons.history, 'My Bookings', () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const BookingsScreen()),
-                    );
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(builder: (_) => const BookingsScreen()),
+                    // );
                   }),
                   _buildOptionTile(Icons.payment, 'Payment Methods', () {}),
                   _buildOptionTile(Icons.settings, 'Settings', () {}),

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:parking_app/models/parking_location.dart';
-import 'package:parking_app/models/recent_parking.dart';
+import 'package:parking_app/models/parking.dart';
 import 'package:parking_app/screens/booking/booking_screen.dart';
-import 'package:parking_app/screens/booking/my_bookings_screen.dart';
 import 'package:parking_app/screens/home/profile_screen.dart';
 import 'package:parking_app/screens/home/search_screen.dart';
+import 'package:parking_app/services/auth/auth_service.dart';
+import 'package:parking_app/services/dio_client/dio_client.dart';
+import 'package:parking_app/services/parking/parking_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,96 +16,92 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-
   late final List<Widget> _screens;
+  late final ParkingService _parkingService;
+  late final AuthService _authService;
+
+  List<Parking> _nearbyParkings = [];
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+    final dioClient = DioClient('http://127.0.0.1:8000');
+    _parkingService = ParkingService(dioClient);
+    _authService = AuthService(dioClient);
+
     _screens = [
       _buildHomeContent(),
       const SearchScreen(),
-      const BookingsScreen(),
+      // const BookingsScreen(),
       const ProfileScreen(),
     ];
+
+    _fetchData();
   }
 
-  Widget _buildHomeContent() {
-    return SafeArea(
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            _buildSearchBar(),
-            _buildNearbyParkings(),
-            _buildRecentParkings(),
-          ],
-        ),
-      ),
-    );
-  }
+  Future<void> _fetchData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-  // List of nearby parking locations
-  final List<ParkingLocation> _nearbyParkings = [
-    ParkingLocation(
-      name: 'City Center Parking',
-      address: '123 Main St, Downtown',
-      distance: '0.5',
-      price: '2.50',
-      available: 8,
-      total: 20,
-      rating: 4.7,
-      imageUrl: 'assets/images/parking_1_thumb.png',
-    ),
-    ParkingLocation(
-      name: 'West Plaza Garage',
-      address: '456 Oak Ave, Westside',
-      distance: '0.8',
-      price: '3.00',
-      available: 15,
-      total: 45,
-      rating: 4.5,
-      imageUrl: 'assets/images/parking_2_thumb.png',
-    ),
-    ParkingLocation(
-      name: 'North Station Parking',
-      address: '789 Pine Rd, Northside',
-      distance: '1.2',
-      price: '2.00',
-      available: 5,
-      total: 30,
-      rating: 4.2,
-      imageUrl: 'assets/images/parking_3_thumb.png',
-    ),
-  ];
+    // Check authentication
+    final isAuthenticated = await _authService.isAuthenticated();
+    if (!isAuthenticated) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Please log in to view parkings';
+      });
+      return;
+    }
 
-  // List of recent parkings
-  final List<RecentParking> _recentParkings = [
-    RecentParking(
-      name: 'Shopping Mall Parking',
-      date: 'Yesterday, 15:30',
-      price: '4.50',
-      imageUrl: 'assets/images/parking_recent_1.png',
-    ),
-    RecentParking(
-      name: 'Airport Terminal Parking',
-      date: 'Apr 15, 2025, 08:20',
-      price: '12.75',
-      imageUrl: 'assets/images/parking_recent_2.png',
-    ),
-  ];
+    try {
+      // Fetch nearby parkings
+      final parkingResponse = await _parkingService.getAllParkings();
 
-  void navigateToBooking(
-    BuildContext context,
-    ParkingLocation parkingLocation,
-  ) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BookingScreen(parkingLocation: parkingLocation),
-      ),
-    );
+      // Debug print to see what's coming back
+      print("Parking response: ${parkingResponse.data}");
+
+      if (parkingResponse.success && parkingResponse.data != null) {
+        // Make sure we're getting a List from the data
+        final parkingsData = parkingResponse.data;
+        if (parkingsData is List) {
+          final parkings =
+              parkingsData
+                  ?.map(
+                    (item) => Parking.fromJson(item as Map<String, dynamic>),
+                  )
+                  .toList() ??
+              [];
+
+          // Debug print to see what we're setting
+          print("Parsed parkings: ${parkings.length}");
+
+          setState(() {
+            _nearbyParkings = parkings;
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _errorMessage = "Invalid data format received";
+            _isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _errorMessage = parkingResponse.message ?? "Unknown error";
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error in _fetchData: ${e.toString()}");
+      setState(() {
+        _errorMessage = "Error fetching data: ${e.toString()}";
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -139,6 +136,31 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildHomeContent() {
+    // Debug print to help diagnose the issue
+    print(
+      "Building home content: isLoading=$_isLoading, errorMessage=$_errorMessage, parkings=${_nearbyParkings.length}",
+    );
+
+    return SafeArea(
+      child:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMessage != null
+              ? Center(child: Text(_errorMessage!))
+              : SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    _buildSearchBar(),
+                    _buildNearbyParkings(),
+                  ],
+                ),
+              ),
     );
   }
 
@@ -183,7 +205,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               GestureDetector(
                 onTap: () {
-                  // Handle profile tap
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
                 },
                 child: Container(
                   width: 50,
@@ -214,21 +241,31 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         children: [
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.search, color: Colors.grey[600], size: 24),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Search for parking',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[500]),
-                  ),
-                ],
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _currentIndex = 1; // Navigate to SearchScreen
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.search, color: Colors.grey[600], size: 24),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Search for parking',
+                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -278,23 +315,34 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 260,
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              scrollDirection: Axis.horizontal,
-              itemCount: _nearbyParkings.length,
-              itemBuilder: (context, index) {
-                return _buildParkingCard(_nearbyParkings[index]);
-              },
-            ),
-          ),
+          _nearbyParkings.isEmpty
+              ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Text('No parking spots available'),
+                ),
+              )
+              : SizedBox(
+                height: 260,
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _nearbyParkings.length,
+                  itemBuilder: (context, index) {
+                    return _buildParkingCard(_nearbyParkings[index], index);
+                  },
+                ),
+              ),
         ],
       ),
     );
   }
 
-  Widget _buildParkingCard(ParkingLocation parking) {
+  Widget _buildParkingCard(Parking parking, int index) {
+    // Mock distance and rating (replace with real calculations if available)
+    final distance = (0.5 + index * 0.3).toStringAsFixed(1);
+    final rating = 4.2 + index * 0.3;
+
     return Container(
       width: 220,
       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -313,7 +361,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Parking image
           SizedBox(
             height: 120,
             child: Container(
@@ -351,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const Icon(Icons.star, color: Colors.amber, size: 16),
                           const SizedBox(width: 2),
                           Text(
-                            parking.rating.toString(),
+                            rating.toStringAsFixed(1),
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -405,9 +452,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _buildInfoChip('${parking.distance} km'),
+                      _buildInfoChip('$distance km'),
                       const SizedBox(width: 8),
-                      _buildInfoChip('\$${parking.price}/hr'),
+                      _buildInfoChip(
+                        '\$${(parking.pricePerHour / 100).toStringAsFixed(2)}/hr',
+                      ),
                     ],
                   ),
                   const Spacer(),
@@ -425,7 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           Text(
-                            '${parking.available}/${parking.total} spots',
+                            '${parking.availableSpots}/${parking.totalSlots} spots',
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -434,19 +483,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF4CB8B3),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: GestureDetector(
-                          onTap: () {
-                            navigateToBooking(context, parking);
-                          },
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => BookingScreen(parking: parking),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4CB8B3),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                           child: const Text(
                             'Book',
                             style: TextStyle(
@@ -478,128 +533,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Text(
         text,
         style: TextStyle(fontSize: 12, color: Colors.grey[800]),
-      ),
-    );
-  }
-
-  Widget _buildRecentParkings() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Recent Parkings',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              TextButton(
-                onPressed: () {
-                  // Handle see all tap
-                },
-                child: const Text(
-                  'See All',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF4CB8B3),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ..._recentParkings.map((parking) => _buildRecentParkingItem(parking)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentParkingItem(RecentParking parking) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            height: 60,
-            width: 60,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.local_parking,
-                color: Colors.grey[500],
-                size: 30,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  parking.name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  parking.date,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '\$${parking.price}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4CB8B3),
-                ),
-              ),
-              const SizedBox(height: 4),
-              ElevatedButton(
-                onPressed: () {
-                  // Handle rebook action
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xFF4CB8B3),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 0,
-                  ),
-                  minimumSize: const Size(0, 30),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    side: const BorderSide(color: Color(0xFF4CB8B3)),
-                  ),
-                ),
-                child: const Text(
-                  'Rebook',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

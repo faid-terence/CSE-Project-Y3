@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:parking_app/models/parking_location.dart';
+import 'package:parking_app/models/parking.dart';
 import 'package:parking_app/models/payment_method.dart';
-import 'package:parking_app/screens/vehicle_management/add_vehicle_screen.dart';
+import 'package:parking_app/services/bookings/booking_service.dart';
+import 'package:parking_app/services/dio_client/dio_client.dart';
 
 class BookingScreen extends StatefulWidget {
-  final ParkingLocation parkingLocation;
+  final Parking parking;
 
-  const BookingScreen({super.key, required this.parkingLocation});
+  const BookingScreen({super.key, required this.parking});
 
   @override
   State<BookingScreen> createState() => _BookingScreenState();
@@ -24,18 +25,10 @@ class _BookingScreenState extends State<BookingScreen> {
   int _selectedVehicleIndex = 0;
   int _selectedPaymentIndex = 0;
 
-  final List<Vehicle> _vehicles = [
-    Vehicle(
-      name: 'Tesla Model 3',
-      licensePlate: 'CA-123-ABC',
-      icon: Icons.electric_car,
-    ),
-    Vehicle(
-      name: 'Honda Civic',
-      licensePlate: 'CA-456-DEF',
-      icon: Icons.directions_car,
-    ),
-  ];
+  List<Vehicle> _vehicles = []; // Will be fetched
+  bool _isLoadingVehicles = true;
+  String? _vehicleError;
+  late final BookingService _bookingService;
 
   final List<PaymentMethod> _paymentMethods = [
     PaymentMethod(
@@ -48,10 +41,61 @@ class _BookingScreenState extends State<BookingScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _bookingService = BookingService(DioClient('http://localhost:8000'));
+    _fetchVehicles();
+  }
+
+  Future<void> _fetchVehicles() async {
+    setState(() {
+      _isLoadingVehicles = true;
+      _vehicleError = null;
+    });
+
+    // Mock vehicle fetching (replace with actual API call)
+    // For now, use hardcoded vehicles to match your original code
+    await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
+    setState(() {
+      _vehicles = [
+        Vehicle(
+          id: 1,
+          userId: 1,
+          name: 'Tesla Model 3',
+          licensePlate: 'CA-123-ABC',
+          icon: 'electric-car',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        Vehicle(
+          id: 2,
+          userId: 1,
+          name: 'Honda Civic',
+          licensePlate: 'CA-456-DEF',
+          icon: 'car-sedan',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ];
+      _isLoadingVehicles = false;
+    });
+
+    // TODO: Replace with actual API call
+    // final response = await _dioClient.get('/api/vehicles');
+    // if (response.success) {
+    //   _vehicles = response.data.map((json) => Vehicle.fromJson(json)).toList();
+    // } else {
+    //   _vehicleError = response.message;
+    // }
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Calculate total hours and price
     double totalHours = _calculateTotalHours();
-    double totalPrice = totalHours * double.parse(widget.parkingLocation.price);
+    double totalPrice =
+        totalHours *
+        (widget.parking.pricePerHour / 1000); // Convert cents to dollars
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -89,6 +133,9 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _buildParkingDetails() {
+    // Mock rating and imageUrl
+    const double rating = 4.5;
+
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.white,
@@ -119,7 +166,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.parkingLocation.name,
+                      widget.parking.name,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -136,7 +183,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            widget.parkingLocation.address,
+                            widget.parking.address,
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -164,7 +211,7 @@ class _BookingScreenState extends State<BookingScreen> {
                               Icon(Icons.star, size: 16, color: Colors.amber),
                               const SizedBox(width: 4),
                               Text(
-                                '${widget.parkingLocation.rating}',
+                                '$rating',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -185,7 +232,7 @@ class _BookingScreenState extends State<BookingScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '\$${widget.parkingLocation.price}/hr',
+                            '\$${(widget.parking.pricePerHour / 1000).toStringAsFixed(2)}/hr',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -220,7 +267,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '${widget.parkingLocation.available}/${widget.parkingLocation.total} parking spots available',
+                    '${widget.parking.availableSpots}/${widget.parking.totalSlots} parking spots available',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF4CB8B3),
@@ -370,9 +417,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               TextButton.icon(
-                onPressed: () {
-                  // Handle add vehicle
-                },
+                onPressed: () {},
                 icon: const Icon(
                   Icons.add_circle_outline,
                   color: Color(0xFF4CB8B3),
@@ -386,86 +431,92 @@ class _BookingScreenState extends State<BookingScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 100,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _vehicles.length,
-              itemBuilder: (context, index) {
-                final vehicle = _vehicles[index];
-                final isSelected = index == _selectedVehicleIndex;
+          _isLoadingVehicles
+              ? const Center(child: CircularProgressIndicator())
+              : _vehicleError != null
+              ? Center(child: Text(_vehicleError!))
+              : SizedBox(
+                height: 100,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _vehicles.length,
+                  itemBuilder: (context, index) {
+                    final vehicle = _vehicles[index];
+                    final isSelected = index == _selectedVehicleIndex;
 
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedVehicleIndex = index;
-                    });
-                  },
-                  child: Container(
-                    width: 160,
-                    margin: const EdgeInsets.only(right: 12),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color:
-                            isSelected
-                                ? const Color(0xFF4CB8B3)
-                                : Colors.grey[300]!,
-                        width: isSelected ? 2 : 1,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      color:
-                          isSelected ? const Color(0xFFEDF7F7) : Colors.white,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Icon(
-                              vehicle.icon,
-                              color:
-                                  isSelected
-                                      ? const Color(0xFF4CB8B3)
-                                      : Colors.grey[600],
-                              size: 28,
-                            ),
-                            if (isSelected)
-                              const Icon(
-                                Icons.check_circle,
-                                color: Color(0xFF4CB8B3),
-                                size: 20,
-                              ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Text(
-                          vehicle.name,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedVehicleIndex = index;
+                        });
+                      },
+                      child: Container(
+                        width: 160,
+                        margin: const EdgeInsets.only(right: 12),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          border: Border.all(
                             color:
                                 isSelected
                                     ? const Color(0xFF4CB8B3)
-                                    : Colors.black,
+                                    : Colors.grey[300]!,
+                            width: isSelected ? 2 : 1,
                           ),
+                          borderRadius: BorderRadius.circular(12),
+                          color:
+                              isSelected
+                                  ? const Color(0xFFEDF7F7)
+                                  : Colors.white,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          vehicle.licensePlate,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Icon(
+                                  vehicle.iconData,
+                                  color:
+                                      isSelected
+                                          ? const Color(0xFF4CB8B3)
+                                          : Colors.grey[600],
+                                  size: 28,
+                                ),
+                                if (isSelected)
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: Color(0xFF4CB8B3),
+                                    size: 20,
+                                  ),
+                              ],
+                            ),
+                            const Spacer(),
+                            Text(
+                              vehicle.name,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    isSelected
+                                        ? const Color(0xFF4CB8B3)
+                                        : Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              vehicle.licensePlate,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
+                      ),
+                    );
+                  },
+                ),
+              ),
         ],
       ),
     );
@@ -608,7 +659,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               ),
               Text(
-                '\$${widget.parkingLocation.price}/hour',
+                '\$${(widget.parking.pricePerHour / 1000).toStringAsFixed(2)}/hour',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -692,8 +743,7 @@ class _BookingScreenState extends State<BookingScreen> {
         height: 50,
         child: ElevatedButton(
           onPressed: () {
-            // Handle booking confirmation
-            _showBookingConfirmation(context);
+            _confirmBooking();
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF4CB8B3),
@@ -766,7 +816,6 @@ class _BookingScreenState extends State<BookingScreen> {
               _calculateTotalMinutes(_startTime)) {
             _endTime = picked;
           } else {
-            // Show error message
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('End time must be after start time'),
@@ -793,6 +842,48 @@ class _BookingScreenState extends State<BookingScreen> {
     }
 
     return (endMinutes - startMinutes) / 60.0;
+  }
+
+  void _confirmBooking() async {
+    if (_vehicles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please add a vehicle'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final startDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _startTime.hour,
+      _startTime.minute,
+    );
+    final endDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _endTime.hour,
+      _endTime.minute,
+    );
+
+    final response = await _bookingService.createBooking(
+      parkingId: widget.parking.id,
+      vehicleId: _vehicles[_selectedVehicleIndex].id,
+      startTime: startDateTime,
+      endTime: endDateTime,
+    );
+
+    if (response.success) {
+      _showBookingConfirmation(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message!), backgroundColor: Colors.red),
+      );
+    }
   }
 
   void _showBookingConfirmation(BuildContext context) {
@@ -827,7 +918,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'You have successfully booked a parking spot at ${widget.parkingLocation.name}',
+                  'You have successfully booked a parking spot at ${widget.parking.name}',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
@@ -905,5 +996,46 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 }
 
-// Payment Method Model
+class Vehicle {
+  final int id;
+  final int userId;
+  final String name;
+  final String licensePlate;
+  final String icon; // API returns string like "car-sedan"
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
+  Vehicle({
+    required this.id,
+    required this.userId,
+    required this.name,
+    required this.licensePlate,
+    required this.icon,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory Vehicle.fromJson(Map<String, dynamic> json) {
+    return Vehicle(
+      id: json['id'] as int,
+      userId: json['user_id'] as int,
+      name: json['name'] as String,
+      licensePlate: json['license_plate'] as String,
+      icon: json['icon'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+    );
+  }
+
+  // Map string icon to IconData for UI
+  IconData get iconData {
+    switch (icon) {
+      case 'car-sedan':
+        return Icons.directions_car;
+      case 'electric-car':
+        return Icons.electric_car;
+      default:
+        return Icons.directions_car;
+    }
+  }
+}
