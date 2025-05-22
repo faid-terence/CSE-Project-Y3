@@ -21,7 +21,9 @@ class ParkingApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<DioClient>(create: (_) => DioClient('http://localhost:8000')),
+        Provider<DioClient>(
+          create: (_) => DioClient('http://192.168.60.201:8000'),
+        ),
         Provider<StorageService>(create: (_) => StorageService()),
         Provider<AuthService>(
           create: (context) => AuthService(context.read<DioClient>()),

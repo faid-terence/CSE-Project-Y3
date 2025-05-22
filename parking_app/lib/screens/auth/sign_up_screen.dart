@@ -28,7 +28,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void initState() {
     super.initState();
     // Initialize with your API base URL
-    _dioClient = DioClient('http://127.0.0.1:8000');
+    _dioClient = DioClient('http://192.168.60.201:8000');
     _authService = AuthService(_dioClient);
   }
 

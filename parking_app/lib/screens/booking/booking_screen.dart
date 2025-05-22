@@ -43,7 +43,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
-    _bookingService = BookingService(DioClient('http://localhost:8000'));
+    _bookingService = BookingService(DioClient('http://192.168.60.201:8000'));
     _fetchVehicles();
   }
 
