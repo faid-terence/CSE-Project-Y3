@@ -1,4 +1,4 @@
-# ParkWise - Smart Parking Solution 🅿️
+# SPARK - Smart Parking Solution 🅿️
 
 ParkWise is a comprehensive parking application designed to streamline the process of finding and managing parking spaces. The project consists of a **Flutter-based mobile application** for users and a **Laravel-based backend system** for managing operations.
 
