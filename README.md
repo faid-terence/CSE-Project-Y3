@@ -57,7 +57,7 @@ The mobile application is built using **Flutter**, providing a cross-platform ex
 
 ---
 
-## ⚙️ Backend (`parking-app`)
+## ⚙️ Backend (`parking-app-backend`)
 
 The backend is a RESTful API built with **Laravel** (PHP framework) and uses **SQLite** as its database.
 
